@@ -19,9 +19,7 @@ int main() {
 
     train::model::Camera camera;
     camera.setupProjection(static_cast<float>(initialWindowWidth), static_cast<float>(initialWindowHeight));
-    mainWindow.setResizeCallback([&camera](int width, int height) {
-        camera.setupProjection(static_cast<float>(width), static_cast<float>(height));
-    });
+    mainWindow.setResizeCallback(std::bind(&train::model::Camera::setupProjection, camera, _1, _2));
     camera.update(glm::vec3(0.f, 0.f, -5.f), glm::vec3(0.f, 0.f, 1.f));
     train::input::FreeCameraController cameraController(camera, mainWindow);
 

@@ -22,7 +22,7 @@ namespace train {
         }
 
         void FreeCameraController::update(double delta) {
-            const float cameraMoveSpeed = 0.1f;
+            const float cameraMoveSpeed = 1.5f;
             const float cameraRotateSpeed = 0.0015f;
             const glm::vec3 forward = camera.getForwardVector();
             const glm::vec3 leftVec = glm::normalize(glm::cross(forward, glm::vec3(0.f, 1.f, 0.f)));

@@ -32,7 +32,7 @@ namespace train {
                 return handle;
             }
 
-            static Texture fromFile(const char *filename);
+            static Texture fromFile(const char *filename, const TextureParams &userParams = {});
 
         private:
             void createTexture(const void *data, int width, int height, GLenum format, const TextureParams &params);

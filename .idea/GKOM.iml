@@ -25,13 +25,13 @@
       <sourceFolder url="file://$MODULE_DIR$/sources/res/image-loader.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/sources/res/image-data.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/sources/res/CMakeLists.txt" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/sources/res/mesh-generator.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/sources/res/mesh-generator.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/sources/res/vertex-definition.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/sources/res/vertex-format.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/sources/res/vertex-definition.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/sources/res/image-loader.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/sources/res/vertex-format.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/sources/res/mesh-generator.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/sources/res/mesh-generator.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/sources/res/mesh-data.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/sources/input/icamera-controller.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/sources/input/free-camera-controller.cpp" isTestSource="false" />

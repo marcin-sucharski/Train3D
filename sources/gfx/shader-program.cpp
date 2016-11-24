@@ -54,6 +54,16 @@ namespace train {
             glUniformMatrix4fv(uniform, 1, GL_FALSE, glm::value_ptr(m));
         }
 
+        void ShaderProgram::setUniform(const std::string &name, const glm::vec2 &value) {
+            const auto uniform = glGetUniformLocation(program, name.c_str());
+            glUniform2f(uniform, value.x, value.y);
+        }
+
+        void ShaderProgram::setUniform(const std::string &name, const glm::vec3 &value) {
+            const auto uniform = glGetUniformLocation(program, name.c_str());
+            glUniform3f(uniform, value.x, value.y, value.z);
+        }
+
         void ShaderProgram::setUniform(const std::string &name, int value) {
             const auto uniform = glGetUniformLocation(program, name.c_str());
             glUniform1i(uniform, value);

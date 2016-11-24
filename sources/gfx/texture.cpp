@@ -33,14 +33,14 @@ namespace train {
             return *this;
         }
 
-        Texture Texture::fromFile(const char *filename) {
+        Texture Texture::fromFile(const char *filename, const TextureParams &userParams) {
             env::File file(filename);
             if (!file.isValid()) {
                 throw std::exception();
             }
 
             res::ImageData imgData = res::ImageLoader::load(file);
-            return Texture(&imgData.data[0], imgData.width, imgData.height, imgData.format);
+            return Texture(&imgData.data[0], imgData.width, imgData.height, imgData.format, userParams);
         }
 
         void Texture::createTexture(

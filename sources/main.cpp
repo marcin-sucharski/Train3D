@@ -25,7 +25,7 @@ int main() {
     camera.update(glm::vec3(0.f, 0.f, -5.f), glm::vec3(0.f, 0.f, 1.f));
     train::input::FreeCameraController cameraController(camera, mainWindow);
 
-    const int terrainWidth = 1024, terrainHeight = 1024;
+    const int terrainWidth = 256, terrainHeight = 256;
     const auto gridData = train::res::MeshGenerator::Grid(terrainWidth, terrainHeight);
     auto grid = train::gfx::Mesh::create(gridData);
     auto shaderProgram = train::gfx::ShaderProgram::fromFile(
@@ -51,7 +51,7 @@ int main() {
 
         shaderProgram.bind();
         shaderProgram.setUniform("projectionView", camera.getProjectionView());
-        shaderProgram.setUniform("terrainSize", glm::vec3(terrainWidth, terrainHeight, 256.f));
+        shaderProgram.setUniform("terrainSize", glm::vec3(terrainWidth, terrainHeight, 64.f));
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, terrainTexture.getHandle());
         shaderProgram.setUniform("terrainTexture", 0);
@@ -60,6 +60,14 @@ int main() {
         shaderProgram.unbind();
 
         mainWindow.present();
+
+        if (glfwGetKey(mainWindow.getGLFWWindow(), GLFW_KEY_0) == GLFW_PRESS) {
+            glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+        }
+        if (glfwGetKey(mainWindow.getGLFWWindow(), GLFW_KEY_9) == GLFW_PRESS) {
+            glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+        }
+
     }
 
     return 0;

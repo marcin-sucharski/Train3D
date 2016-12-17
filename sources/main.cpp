@@ -9,6 +9,7 @@
 #include "model/camera.h"
 #include "input/free-camera-controller.h"
 #include "util/time-step.h"
+#include <cmath>
 
 using namespace std::placeholders;
 
@@ -33,17 +34,32 @@ int main() {
         "data/shaders/terrain.frag",
         gridData.vertexDefinition
     );
-
     auto terrainTexture = train::gfx::Texture::fromFile("data/textures/terrain_1.png");
+
+    const auto lightCubeData = train::res::MeshGenerator::ColoredCube();
+    auto lightCube = train::gfx::Mesh::create(lightCubeData);
+    auto cubeShaderProgram = train::gfx::ShaderProgram::fromFile(
+        "data/shaders/simple-transform.vert",
+        "data/shaders/simple.frag",
+        lightCubeData.vertexDefinition
+    );
 
     train::util::TimeStep realTimeTimeStep(train::util::TimeStep::Mode::Variable);
     realTimeTimeStep.addHandler(std::bind(&train::input::ICameraController::update, &cameraController, _1));
     realTimeTimeStep.start();
 
+    float normalCoefficient = 0.0092f;
+    glm::vec3 lightPos(0.0f, 128.0f, 0.0f);
+
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_CCW);
     while (mainWindow.exists()) {
         train::env::Window::processEvents();
         realTimeTimeStep.tick();
+
+        lightPos.x = std::sin(static_cast<float>(glfwGetTime() / 3.)) * 128.0f;
+        lightPos.z = std::cos(static_cast<float>(glfwGetTime() / 3.)) * 128.0f;
 
         glClearColor(0.0, 1.0f, 1.0f, 1.0f);
         glClearDepth(1.0f);
@@ -52,12 +68,20 @@ int main() {
         shaderProgram.bind();
         shaderProgram.setUniform("projectionView", camera.getProjectionView());
         shaderProgram.setUniform("terrainSize", glm::vec3(terrainWidth, terrainHeight, 64.f));
+        shaderProgram.setUniform("normalCoefficient", normalCoefficient);
+        shaderProgram.setUniform("lightPos", lightPos);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, terrainTexture.getHandle());
         shaderProgram.setUniform("terrainTexture", 0);
 
         grid.draw();
         shaderProgram.unbind();
+
+        cubeShaderProgram.bind();
+        cubeShaderProgram.setUniform("projectionView", camera.getProjectionView());
+        cubeShaderProgram.setUniform("model", glm::translate(glm::mat4x4(), lightPos));
+        lightCube.draw();
+        cubeShaderProgram.unbind();
 
         mainWindow.present();
 
@@ -68,6 +92,15 @@ int main() {
             glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
         }
 
+        if (glfwGetKey(mainWindow.getGLFWWindow(), GLFW_KEY_LEFT_BRACKET) == GLFW_PRESS) {
+            normalCoefficient *= 1.01;
+        }
+        if (glfwGetKey(mainWindow.getGLFWWindow(), GLFW_KEY_RIGHT_BRACKET) == GLFW_PRESS) {
+            normalCoefficient *= 0.99;
+        }
+        if (glfwGetKey(mainWindow.getGLFWWindow(), GLFW_KEY_SLASH) == GLFW_PRESS) {
+            std::cout << normalCoefficient << std::endl;
+        }
     }
 
     return 0;

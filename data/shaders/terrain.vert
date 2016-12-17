@@ -3,12 +3,15 @@
 in  vec2 in_pos;
 
 out vec3 ex_color;
-smooth out vec3 ex_normal;
+out vec3 ex_normal;
+out vec3 ex_pos;
 
 uniform mat4x4 projectionView;
 
 uniform vec3 terrainSize;
 uniform sampler2D terrainTexture;
+
+uniform float normalCoefficient;
 
 vec2 toHeightMapSpace(vec2 pos) {
     vec2 halfSize = terrainSize.xy / 2.0;
@@ -32,10 +35,12 @@ void main(void) {
     vec3 N;
     N.x = hL - hR;
     N.z = hD - hU;
-    N.y = 0.001;
-    N = normalize(N);
+    N.y = normalCoefficient; // 0.001;
+    N = -normalize(N);
 
-    gl_Position = projectionView * vec4(in_pos.x, h * terrainSize.z, in_pos.y, 1.0);
+    float resultY = h * terrainSize.z;
+    gl_Position = projectionView * vec4(in_pos.x, resultY, in_pos.y, 1.0);
     ex_color = vec3(0.1, 0.8, 0.2);
     ex_normal = N;
+    ex_pos = vec3(in_pos.x, resultY, in_pos.y);
 }

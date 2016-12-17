@@ -1,3 +1,4 @@
+#include <math.h>
 #include "free-camera-controller.h"
 #include "../model/controllable-camera.h"
 #include "../env/window.h"

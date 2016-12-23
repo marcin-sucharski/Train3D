@@ -1,4 +1,6 @@
 #version 130
+#name "terrain.vert"
+#include "common/terrain.glsl"
 
 in  vec2 in_pos;
 
@@ -13,24 +15,15 @@ uniform sampler2D terrainTexture;
 
 uniform float normalCoefficient;
 
-vec2 toHeightMapSpace(vec2 pos) {
-    vec2 halfSize = terrainSize.xy / 2.0;
-    return (pos + halfSize) * vec2(1.0 / terrainSize.x, 1.0 / terrainSize.y);
-}
-
-float height(vec2 coord) {
-    return texture2DLod(terrainTexture, coord, 0.0).x;
-}
-
 void main(void) {
-    vec2 coord = toHeightMapSpace(in_pos);
-    float h = height(coord);
+    vec2 coord = toHeightMapSpace(in_pos, terrainSize);
+    float h = height(coord, terrainTexture);
 
     vec3 off = vec3(0.1, 0.1, 0.0);
-    float hL = height(toHeightMapSpace(in_pos - off.xz));
-    float hR = height(toHeightMapSpace(in_pos + off.xz));
-    float hD = height(toHeightMapSpace(in_pos - off.zy));
-    float hU = height(toHeightMapSpace(in_pos + off.zy));
+    float hL = height(toHeightMapSpace(in_pos - off.xz, terrainSize), terrainTexture);
+    float hR = height(toHeightMapSpace(in_pos + off.xz, terrainSize), terrainTexture);
+    float hD = height(toHeightMapSpace(in_pos - off.zy, terrainSize), terrainTexture);
+    float hU = height(toHeightMapSpace(in_pos + off.zy, terrainSize), terrainTexture);
 
     vec3 N;
     N.x = hL - hR;

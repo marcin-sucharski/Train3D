@@ -142,6 +142,7 @@ namespace train {
 
                 glDeleteShader(shader);
                 std::cerr << "Shader compilation error: " << infoLog.c_str() << std::endl;
+                std::cerr << "Shader code: " << source << std::endl;
                 throw std::exception();
             }
 

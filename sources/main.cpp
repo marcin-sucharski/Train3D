@@ -9,7 +9,7 @@
 #include "model/camera.h"
 #include "input/free-camera-controller.h"
 #include "util/time-step.h"
-#include <cmath>
+#include "gfx/shader-manager.h"
 
 using namespace std::placeholders;
 
@@ -26,21 +26,23 @@ int main() {
     camera.update(glm::vec3(0.f, 0.f, -5.f), glm::vec3(0.f, 0.f, 1.f));
     train::input::FreeCameraController cameraController(camera, mainWindow);
 
+    train::gfx::ShaderManager shaderManager;
+
     const int terrainWidth = 256, terrainHeight = 256;
     const auto gridData = train::res::MeshGenerator::Grid(terrainWidth, terrainHeight);
     auto grid = train::gfx::Mesh::create(gridData);
-    auto shaderProgram = train::gfx::ShaderProgram::fromFile(
-        "data/shaders/terrain.vert",
-        "data/shaders/terrain.frag",
+    auto &shaderProgram = shaderManager.get(
+        "vert/terrain.glsl",
+        "frag/terrain.glsl",
         gridData.vertexDefinition
     );
     auto terrainTexture = train::gfx::Texture::fromFile("data/textures/terrain_1.png");
 
     const auto lightCubeData = train::res::MeshGenerator::ColoredCube();
     auto lightCube = train::gfx::Mesh::create(lightCubeData);
-    auto cubeShaderProgram = train::gfx::ShaderProgram::fromFile(
-        "data/shaders/simple-transform.vert",
-        "data/shaders/simple.frag",
+    auto &cubeShaderProgram = shaderManager.get(
+        "vert/simple-transform.glsl",
+        "frag/simple.glsl",
         lightCubeData.vertexDefinition
     );
 

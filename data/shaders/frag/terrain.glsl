@@ -1,4 +1,5 @@
 #version 130
+#name "terrain.frag"
 
 precision highp float;
 

@@ -19,8 +19,6 @@ namespace train {
             sourceStringNumbers.push(++sourceStringNumber);
 
             int lineNumber = 1;
-            output << "#line " << lineNumber << " " << sourceStringNumbers.top() << endl;
-
             bool firstLineCharacter = true;
             for (auto it = input.begin(); it != input.end(); ++it) {
                 switch (*it) {
@@ -34,8 +32,9 @@ namespace train {
                     case '#':
                         if (firstLineCharacter) {
                             auto newline = std::find(it, input.end(), '\n');
-                            handleDirective(string(it, newline), output);
-                            it = newline;
+                            auto directive = string(it, newline);
+                            handleDirective(directive, output);
+                            it = newline - 1;
                             break;
                         }
 
@@ -47,7 +46,7 @@ namespace train {
             }
 
             sourceStringNumbers.pop();
-            return string();
+            return output.str();
         }
 
         void ShaderPreprocessor::handleDirective(const string &directive, ostringstream &output) {
@@ -64,6 +63,7 @@ namespace train {
 
             string identifier(identifierNameBeg, identifierNameEnd);
 
+            output << "//<BEGIN>[" << directive << "]" << endl;
             if (identifier == "include") {
                 handleInclude(directive, output);
             } else if(identifier == "name") {
@@ -71,6 +71,7 @@ namespace train {
             } else {
                 output << directive;
             }
+            output << "//<END>[" << directive << "]" << endl;
         }
 
         void ShaderPreprocessor::handleInclude(const std::string &directive, std::ostringstream &output) {

@@ -103,8 +103,8 @@ namespace train {
             assert(width > 0 && "Width has to be greater than 0");
             assert(height > 0 && "Height has to be greater than 0");
 
-            const int TriangleCount = 2 * width * height;
-            const int VertexCount = 3 * TriangleCount;
+            const std::size_t TriangleCount = static_cast<size_t>(2 * width * height);
+            const std::size_t VertexCount = 3 * TriangleCount;
 
             std::vector<GridVertex> vertices;
             vertices.reserve(VertexCount);
@@ -133,6 +133,10 @@ namespace train {
             }
 
             return MeshData<GridVertex>(std::move(vertices));
+        }
+
+        MeshData<TexturedVertex> MeshGenerator::rails(util::CurveProvider &curveProvider) {
+            return MeshData<TexturedVertex>();
         }
     }
 }

@@ -6,7 +6,7 @@ namespace train {
         void Camera::setupProjection(float viewWidth, float viewHeight) {
             const float defaultFov = 75.0f;
             const float defaultZNear = 0.1f;
-            const float defaultZFar = 8192.0f;
+            const float defaultZFar = 2048.0f;
 
             projection = glm::perspective(
                 glm::radians(defaultFov),

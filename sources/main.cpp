@@ -10,6 +10,7 @@
 #include "input/free-camera-controller.h"
 #include "util/time-step.h"
 #include "gfx/shader-manager.h"
+#include "util/circle-curve-provider.h"
 
 using namespace std::placeholders;
 
@@ -45,6 +46,10 @@ int main() {
         "frag/simple.glsl",
         lightCubeData.vertexDefinition
     );
+
+    auto circle = train::util::CircleCurveProvider(glm::vec3(0.f, 45.f, 0.f), 40.0f);
+    const auto circleRailsData= train::res::MeshGenerator::rails(circle);
+    auto circleRails = train::gfx::Mesh::create(circleRailsData);
 
     train::util::TimeStep realTimeTimeStep(train::util::TimeStep::Mode::Variable);
     realTimeTimeStep.addHandler(std::bind(&train::input::ICameraController::update, &cameraController, _1));
@@ -83,6 +88,8 @@ int main() {
         cubeShaderProgram.setUniform("projectionView", camera.getProjectionView());
         cubeShaderProgram.setUniform("model", glm::translate(glm::mat4x4(), lightPos));
         lightCube.draw();
+        cubeShaderProgram.setUniform("model", glm::mat4x4());
+        circleRails.draw();
         cubeShaderProgram.unbind();
 
         mainWindow.present();

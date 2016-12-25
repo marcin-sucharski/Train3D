@@ -8,6 +8,17 @@
 
 namespace train {
     namespace res {
+        bool operator ==(const VertexElement &a, const VertexElement &b) {
+            return a.name == b.name &&
+                   a.index == b.index &&
+                   a.componentCount == b.componentCount &&
+                   a.type == b.type;
+        }
+
+        bool operator !=(const VertexElement &a, const VertexElement &b) {
+            return !(a == b);
+        }
+
         std::map<GLenum, std::size_t> GLFormatToSize = {
             {GL_BYTE,           sizeof(char)},
             {GL_UNSIGNED_BYTE,  sizeof(unsigned char)},
@@ -81,6 +92,14 @@ namespace train {
 
         const std::vector<VertexElement> &VertexDefinition::getElements() const {
             return elements;
+        }
+
+        bool operator ==(const VertexDefinition &a, const VertexDefinition &b) {
+            return a.getElements() == b.getElements();
+        }
+
+        bool operator !=(const VertexDefinition &a, const VertexDefinition &b) {
+            return !(a == b);
         }
     }
 }

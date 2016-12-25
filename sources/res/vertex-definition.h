@@ -15,6 +15,9 @@ namespace train {
             GLenum type;
         };
 
+        bool operator ==(const VertexElement &a, const VertexElement &b);
+        bool operator !=(const VertexElement &a, const VertexElement &b);
+
         class VertexDefinition {
             std::vector<VertexElement> elements;
 
@@ -33,6 +36,9 @@ namespace train {
 
             const std::vector<VertexElement> &getElements() const;
         };
+
+        bool operator ==(const VertexDefinition &a, const VertexDefinition &b);
+        bool operator !=(const VertexDefinition &a, const VertexDefinition &b);
     }
 }
 

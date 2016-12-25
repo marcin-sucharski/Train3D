@@ -12,7 +12,7 @@ namespace train {
             static MeshData<SimpleVertex> SampleTriangle();
 
             /// Generates colored cube.
-            static MeshData<SimpleVertex> ColoredCube();
+            static MeshData<SimpleVertex> ColoredCube(glm::vec3 position = glm::vec3(), float scale = 1.0f);
 
             /// Generates textured cube.
             static MeshData<TexturedVertex> TexturedCube();
@@ -20,7 +20,7 @@ namespace train {
             /// Generates grid.
             static MeshData<GridVertex> Grid(int width, int height, float cellSize = 1.0);
 
-            static MeshData<TexturedVertex> rails(util::CurveProvider &curveProvider);
+            static MeshData<SimpleVertex> rails(util::CurveProvider &curveProvider);
         };
     }
 }

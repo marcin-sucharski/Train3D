@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 3.6)
 set(SOURCE_FILES
     ${SOURCE_FILES}
 
+    ${CMAKE_CURRENT_SOURCE_DIR}/image-curve-provider.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/image-curve-provider.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/image-data.h
     ${CMAKE_CURRENT_SOURCE_DIR}/image-loader.h
     ${CMAKE_CURRENT_SOURCE_DIR}/image-loader.cpp

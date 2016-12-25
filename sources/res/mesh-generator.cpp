@@ -1,7 +1,10 @@
 #include "mesh-generator.h"
 #include <vector>
 #include <cassert>
+#include <iostream>
 #include "vertex-format.h"
+
+using namespace std;
 
 namespace train {
     namespace res {
@@ -15,8 +18,8 @@ namespace train {
             return MeshData<SimpleVertex>(std::move(vertices));
         }
 
-        MeshData<SimpleVertex> MeshGenerator::ColoredCube() {
-            std::vector<SimpleVertex> pos = {
+        MeshData<SimpleVertex> MeshGenerator::ColoredCube(glm::vec3 position, float scale) {
+            const std::vector<SimpleVertex> pos = {
                 {{-1.0f, 1.0f,  -1.0f}, {1.0f, 0.0f, 0.0f}},
                 {{-1.0f, 1.0f,  1.0f},  {0.0f, 1.0f, 0.0f}},
                 {{1.0f,  1.0f,  -1.0f}, {0.0f, 0.0f, 1.0f}},
@@ -53,6 +56,9 @@ namespace train {
                 pos[2], pos[7], pos[6],
                 pos[3], pos[7], pos[2],
             };
+
+            for (auto &vertex : vertices)
+                vertex.position = (vertex.position * scale + position);
 
             return MeshData<SimpleVertex>(std::move(vertices));
         }
@@ -135,8 +141,50 @@ namespace train {
             return MeshData<GridVertex>(std::move(vertices));
         }
 
-        MeshData<TexturedVertex> MeshGenerator::rails(util::CurveProvider &curveProvider) {
-            return MeshData<TexturedVertex>();
+        MeshData<SimpleVertex> MeshGenerator::rails(util::CurveProvider &curveProvider) {
+            const float tieDistance = 0.5f;
+            const float width = 2.0f;
+            const float baseStep = 0.1f;
+            const float limit = 0.001f;
+
+            float currentDistance = 0.0f;
+            util::CurvePoint currentPoint = curveProvider.getPoint(currentDistance);
+            auto getNextPoint = [&]() {
+                float step = baseStep;
+                float position = currentDistance, prevPosition;
+
+                util::CurvePoint nextPoint;
+                bool result;
+                do {
+                    prevPosition = position;
+                    position += step;
+                    position = glm::clamp(position, 0.0f, 1.0f);
+
+                    nextPoint = curveProvider.getPoint(position);
+                    const float distance = glm::distance(currentPoint.position, nextPoint.position);
+                    result = glm::abs(distance - tieDistance) >= limit;
+
+                    if (distance > tieDistance) {
+                        position = prevPosition;
+                        step *= 0.5f;
+                    }
+
+                    if (distance < tieDistance && position == 1.0f) {
+                        break;
+                    }
+                } while(result);
+
+                currentDistance = position;
+                return nextPoint;
+            };
+
+            MeshData<SimpleVertex> result;
+            while (glm::abs(currentDistance - 1.0f) > limit) {
+                result = result.merge(ColoredCube(currentPoint.position, 0.2f));
+                currentPoint = getNextPoint();
+            }
+
+            return move(result);
         }
     }
 }

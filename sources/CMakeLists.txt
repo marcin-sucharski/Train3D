@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.6)
 
-add_subdirectory(di)
 add_subdirectory(util)
 add_subdirectory(env)
 add_subdirectory(gfx)

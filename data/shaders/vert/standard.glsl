@@ -1,5 +1,5 @@
 #version 130
-#name "terrain.vert"
+#name "standard.vert"
 
 in  vec3 in_pos;
 in  vec3 in_normal;

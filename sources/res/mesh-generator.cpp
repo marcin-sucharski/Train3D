@@ -192,7 +192,7 @@ namespace train {
                 });
         }
 
-        MeshData<SimpleVertex> MeshGenerator::rails(util::CurveProvider &curveProvider) {
+        MeshData<StandardVertex> MeshGenerator::rails(util::CurveProvider &curveProvider) {
             const float tieDistance = 0.5f;
             const float width = 2.0f;
             const float baseStep = 0.005f;
@@ -243,49 +243,81 @@ namespace train {
                     -halfUp + halfForward
                 };
 
-                const vec3 color(165.0f / 255.0f, 42.0f / 256.0f, 42.0f / 256.0f);
-                SimpleVertex left[4], right[4];
+                vec3 left[4], right[4];
                 for (int i = 0; i < 4; ++i) {
-                    left[i] = SimpleVertex {p.position - halfDir + off[i], color};
-                    right[i] = SimpleVertex {p.position + halfDir + off[i], color};
+                    left[i] = p.position - halfDir + off[i];
+                    right[i] = p.position + halfDir + off[i];
                 }
 
-                vector<SimpleVertex> vertices = {
-                    right[2], right[1], right[0],
-                    right[3], right[2], right[0],
+                vector<StandardVertex> vertices = {
+                    {right[2], dir, vec2(0.4f, 0.4f)},
+                    {right[1], dir, vec2(0.0f, 0.4f)},
+                    {right[0], dir, vec2(0.0f, 1.0f)},
 
-                    left[0], left[1], left[2],
-                    left[0], left[2], left[3],
+                    {right[3], dir, vec2(0.4f, 1.0f)},
+                    {right[2], dir, vec2(0.4f, 0.4f)},
+                    {right[0], dir, vec2(0.0f, 1.0f)},
 
-                    left[1], left[0], right[0],
-                    right[1], left[1], right[0],
 
-                    left[2], left[1], right[1],
-                    right[2], left[2], right[1],
+                    {left[0], -dir, vec2(0.0f, 1.0f)},
+                    {left[1], -dir, vec2(0.0f, 0.4f)},
+                    {left[2], -dir, vec2(0.4f, 0.4f)},
 
-                    left[3], left[2], right[2],
-                    right[3], left[3], right[2],
+                    {left[0], -dir, vec2(0.0f, 1.0f)},
+                    {left[2], -dir, vec2(0.4f, 0.4f)},
+                    {left[3], -dir, vec2(0.4f, 1.0f)},
 
-                    right[0], left[3], right[3],
-                    right[0], left[0], left[3]
+
+                    {left[1], -p.forward, vec2(1.0f, 0.4f)},
+                    {left[0], -p.forward, vec2(1.0f, 1.0f)},
+                    {right[0], -p.forward, vec2(0.0f, 1.0f)},
+
+                    {right[1], -p.forward, vec2(0.0f, 0.4f)},
+                    {left[1], -p.forward, vec2(1.0f, 0.4f)},
+                    {right[0], -p.forward, vec2(0.0f, 1.0f)},
+
+
+                    {left[2], p.up, vec2(1.0f, 0.4f)},
+                    {left[1], p.up, vec2(1.0f, 1.0f)},
+                    {right[1], p.up, vec2(0.0f, 1.0f)},
+
+                    {right[2], p.up, vec2(0.0f, 0.4f)},
+                    {left[2], p.up, vec2(1.0f, 0.4f)},
+                    {right[1], p.up, vec2(0.0f, 1.0f)},
+
+
+                    {left[3], p.forward, vec2(1.0f, 0.4f)},
+                    {left[2], p.forward, vec2(1.0f, 1.0f)},
+                    {right[2], p.forward, vec2(0.0f, 1.0f)},
+
+                    {right[3], p.forward, vec2(0.0f, 0.4f)},
+                    {left[3], p.forward, vec2(1.0f, 0.4f)},
+                    {right[2], p.forward, vec2(0.0f, 1.0f)},
+
+
+                    {right[0], -p.up, vec2(1.0f, 0.4f)},
+                    {left[3], -p.up, vec2(1.0f, 1.0f)},
+                    {right[3], -p.up, vec2(0.0f, 1.0f)},
+
+                    {right[0], -p.up, vec2(0.0f, 0.4f)},
+                    {left[0], -p.up, vec2(1.0f, 0.4f)},
+                    {left[3], -p.up, vec2(0.0f, 1.0f)}
                 };
 
-                return MeshData<SimpleVertex>(move(vertices));
+                return MeshData<StandardVertex>(move(vertices));
             };
             const float railHeight = 0.1f, railSpacing = 0.75f;
             auto buildRailElement = [&](const util::CurvePoint &curr, const util::CurvePoint &next) {
                 auto getEndpointVertices = [&](
                     const util::CurvePoint &p,
-                    SimpleVertex outLeft[4],
-                    SimpleVertex outRight[4]
+                    vec3 outLeft[4],
+                    vec3 outRight[4]
                 ) {
                     const auto dir = normalize(cross(p.forward, p.up));
                     const auto halfUp = p.up * 0.5f * railHeight;
                     const auto halfSide = dir * 0.5f * railHeight;
                     const auto halfDir = dir * 0.5f * tieWidth * railSpacing;
-                    const auto halfTieHeight = p.up * tieHeight * 0.7f;
-
-                    const vec3 color(0.5f, 0.5f, 0.5f);
+                    const auto halfTieHeight = p.up * tieHeight * 0.5f;
 
                     const vec3 off[4] = {
                         -halfUp - halfSide,
@@ -294,47 +326,49 @@ namespace train {
                         -halfUp + halfSide
                     };
                     for (int i = 0; i < 4; ++i) {
-                        outLeft[i] = SimpleVertex {p.position + halfTieHeight - halfDir + off[i], color };
-                        outRight[i] = SimpleVertex {p.position + halfTieHeight + halfDir + off[i], color };
+                        outLeft[i] = p.position + halfTieHeight - halfDir + off[i];
+                        outRight[i] = p.position + halfTieHeight + halfDir + off[i];
                     }
                 };
-                auto mergeEndpoints = [](const SimpleVertex begin[4], const SimpleVertex end[4]) {
-                    return MeshData<SimpleVertex>({
-                        begin[0], end[0], end[1],
-                        begin[0], end[1], begin[1],
+                auto mergeEndpoints = [](const vec3 begin[4], const vec3 end[4]) {
+                    vector<StandardVertex> vertices;
+                    vertices.reserve(4 * 6);
+                    for (int i = 0; i < 4; ++i) {
+                        const auto j = (i + 1) % 4;
+                        const vec3 normal = normalize(cross(end[j] - begin[i], end[i] - begin[i]));
+                        StandardVertex quad[6] = {
+                            {end[j], normal, vec2(1.0f, 0.4f)},
+                            {end[i], normal, vec2(1.0f, 0.0f)},
+                            {begin[i], normal, vec2(0.0f, 0.0f)},
 
-                        begin[1], end[1], end[2],
-                        begin[1], end[2], begin[2],
+                            {begin[j], normal, vec2(0.0f, 0.4f)},
+                            {end[j], normal, vec2(1.0f, 0.4f)},
+                            {begin[i], normal, vec2(0.0f, 0.0f)},
+                        };
+                        vertices.insert(vertices.end(), quad, quad + 6);
+                    }
 
-                        begin[2], end[2], end[3],
-                        begin[2], end[3], begin[3],
-
-                        begin[3], end[3], end[0],
-                        begin[3], end[0], begin[0],
-                    });
+                    return MeshData<StandardVertex>(move(vertices));
                 };
 
-                SimpleVertex first[2][4], second[2][4];
+                vec3 first[2][4], second[2][4];
                 getEndpointVertices(curr, first[0], first[1]);
                 getEndpointVertices(next, second[0], second[1]);
 
-                MeshData<SimpleVertex> result;
+                MeshData<StandardVertex> result;
                 result.mergeInplace(mergeEndpoints(first[0], second[0]));
                 result.mergeInplace(mergeEndpoints(first[1], second[1]));
                 return move(result);
             };
 
-            MeshData<SimpleVertex> result;
-            auto nextPoint = getNextPoint();
-            while (abs(currentDistance - 1.0f) > limit) {
+            MeshData<StandardVertex> result;
+            do {
+                auto nextPoint = getNextPoint();
                 result.mergeInplace(buildTie(currentPoint));
                 result.mergeInplace(buildRailElement(currentPoint, nextPoint));
-
                 currentPoint = nextPoint;
-                nextPoint = getNextPoint();
-            }
-            result.mergeInplace(buildTie(nextPoint));
-            result.mergeInplace(buildRailElement(nextPoint, curveProvider.getPoint(0.0f)));
+            } while (abs(currentDistance - 1.0f) > limit);
+            result.mergeInplace(buildRailElement(currentPoint, curveProvider.getPoint(0.0f)));
 
             return move(result);
         }

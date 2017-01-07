@@ -33,23 +33,8 @@ int main() {
     train::gfx::ShaderManager shaderManager;
 
     const int terrainWidth = 256, terrainHeight = 256;
-    const auto gridData = train::res::MeshGenerator::grid(terrainWidth, terrainHeight);
-    auto grid = train::gfx::Mesh::create(gridData);
-    auto &shaderProgram = shaderManager.get(
-        "vert/terrain.glsl",
-        "frag/terrain.glsl",
-        gridData.vertexDefinition
-    );
 
-    const auto lightCubeData = train::res::MeshGenerator::coloredCube();
-    auto lightCube = train::gfx::Mesh::create(lightCubeData);
-    auto &cubeShaderProgram = shaderManager.get(
-        "vert/simple-transform.glsl",
-        "frag/simple.glsl",
-        lightCubeData.vertexDefinition
-    );
-
-    train::env::File terrainTextureFile("data/textures/terrain_2.png");
+    train::env::File terrainTextureFile("data/textures/terrain.png");
     train::res::ImageData terrainTextureData = train::res::ImageLoader::load(terrainTextureFile);
     const auto terrainScale = glm::vec3(terrainWidth, terrainHeight, 48.f);
     train::res::ImageHeightProvider heightProvider(terrainTextureData);
@@ -60,10 +45,16 @@ int main() {
         terrainScale.z
     );
     auto terrainMesh = train::gfx::Mesh::create(terrainMeshData);
+    auto &terrainShader = shaderManager.get(
+        "vert/standard.glsl",
+        "frag/terrain.glsl",
+        terrainMeshData.vertexDefinition
+    );
+
     auto grassTexture = train::gfx::Texture::fromFile("data/textures/grass_grass_0124_01_tiled_s.jpg");
     auto rockTexture = train::gfx::Texture::fromFile("data/textures/ground_stone_ground_0002_02_tiled_s.jpg");
 
-    auto railsCurve = train::res::ImageCurveProvider(heightProvider, terrainScale, {
+    std::vector<glm::vec2> railsShapePoints = {
         glm::vec2(0.288303, 0.240586),
         glm::vec2(0.276757, 0.340764),
         glm::vec2(0.272813, 0.548107),
@@ -93,11 +84,23 @@ int main() {
         glm::vec2(0.325035, 0.156444),
         glm::vec2(0.309431, 0.173424),
         glm::vec2(0.294111, 0.199631),
-        glm::vec2(0.287147, 0.233636),
-        glm::vec2(0.288303, 0.240586)
-    });
+        glm::vec2(0.287147, 0.233636)
+    };
+    glm::vec2 mergeDir = railsShapePoints[0] - railsShapePoints.back();
+    railsShapePoints.push_back(railsShapePoints.back() + mergeDir * 0.9f);
+    auto railsCurve = train::res::ImageCurveProvider(
+        heightProvider,
+        glm::vec3(terrainScale.x, terrainScale.z, terrainScale.y),
+        railsShapePoints
+    );
     const auto railsMeshData = train::res::MeshGenerator::rails(railsCurve);
     auto rails = train::gfx::Mesh::create(railsMeshData);
+    auto &standardShader = shaderManager.get(
+        "vert/standard.glsl",
+        "frag/standard.glsl",
+        railsMeshData.vertexDefinition
+    );
+    auto railsTexture = train::gfx::Texture::fromFile("data/textures/rails.png");
 
     train::util::TimeStep realTimeTimeStep(train::util::TimeStep::Mode::Variable);
     realTimeTimeStep.addHandler(std::bind(&train::input::ICameraController::update, &cameraController, _1));
@@ -106,7 +109,7 @@ int main() {
     float normalCoefficient = 0.0012f;
 
     glEnable(GL_DEPTH_TEST);
-    //glEnable(GL_CULL_FACE);
+    glEnable(GL_CULL_FACE);
     glCullFace(GL_CCW);
 
     while (mainWindow.exists()) {
@@ -117,22 +120,24 @@ int main() {
         glClearDepth(1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        shaderProgram.bind();
-        shaderProgram.setUniform("projectionView", camera.getProjectionView());
+        terrainShader.bind();
+        terrainShader.setUniform("projectionView", camera.getProjectionView());
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, grassTexture.getHandle());
-        shaderProgram.setUniform("textureGrass", 0);
+        terrainShader.setUniform("textureGrass", 0);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, rockTexture.getHandle());
-        shaderProgram.setUniform("textureRock", 1);
+        terrainShader.setUniform("textureRock", 1);
         terrainMesh.draw();
-        shaderProgram.unbind();
+        terrainShader.unbind();
 
-        cubeShaderProgram.bind();
-        cubeShaderProgram.setUniform("projectionView", camera.getProjectionView());
-        cubeShaderProgram.setUniform("model", glm::mat4x4());
+        standardShader.bind();
+        standardShader.setUniform("projectionView", camera.getProjectionView());
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, railsTexture.getHandle());
+        terrainShader.setUniform("diffuse", 0);
         rails.draw();
-        cubeShaderProgram.unbind();
+        standardShader.unbind();
 
         mainWindow.present();
 

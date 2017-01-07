@@ -19,18 +19,19 @@ namespace train {
 
             const auto curr = getImagePos(t), next = getImagePos(fakeNext ? t - diff : t + diff);
 
-            const auto currPos = vec3(curr.x, heightProvider.getHeight(curr), curr.y);
-            const auto nextPos = vec3(next.x, heightProvider.getHeight(next), next.y);
+            auto translatePos = [this](const vec2 &p) {
+                return vec3(
+                    p.x * (terrainScale.x + 1.f),
+                    heightProvider.getHeight(p) * terrainScale.y,
+                    p.y * (terrainScale.z + 1.f)
+                );
+            };
+            const auto currPos = translatePos(curr), nextPos = translatePos(next);
             const auto forward = normalize(fakeNext ? currPos - nextPos : nextPos - currPos);
 
-            const auto up = heightProvider.getNormal(curr, vec3(terrainScale.x, terrainScale.z, terrainScale.y));
-            const auto pos = vec3(
-                currPos.x * (terrainScale.x + 1),
-                currPos.y * terrainScale.z,
-                currPos.z * (terrainScale.y + 1)
-            );
+            const auto up = heightProvider.getNormal(curr, terrainScale);
 
-            return util::CurvePoint(pos, up, forward);
+            return util::CurvePoint(currPos, up, forward);
         }
 
         vec2 ImageCurveProvider::getImagePos(float t) const {

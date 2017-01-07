@@ -25,7 +25,7 @@ namespace train {
                 float cellSize = 1.0
             );
 
-            static MeshData<SimpleVertex> rails(util::CurveProvider &curveProvider);
+            static MeshData<StandardVertex> rails(util::CurveProvider &curveProvider);
         };
     }
 }

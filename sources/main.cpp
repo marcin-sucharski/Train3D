@@ -106,8 +106,6 @@ int main() {
     realTimeTimeStep.addHandler(std::bind(&train::input::ICameraController::update, &cameraController, _1));
     realTimeTimeStep.start();
 
-    float normalCoefficient = 0.0012f;
-
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_CCW);
@@ -146,16 +144,6 @@ int main() {
         }
         if (glfwGetKey(mainWindow.getGLFWWindow(), GLFW_KEY_9) == GLFW_PRESS) {
             glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
-        }
-
-        if (glfwGetKey(mainWindow.getGLFWWindow(), GLFW_KEY_LEFT_BRACKET) == GLFW_PRESS) {
-            normalCoefficient *= 1.01;
-        }
-        if (glfwGetKey(mainWindow.getGLFWWindow(), GLFW_KEY_RIGHT_BRACKET) == GLFW_PRESS) {
-            normalCoefficient *= 0.99;
-        }
-        if (glfwGetKey(mainWindow.getGLFWWindow(), GLFW_KEY_SLASH) == GLFW_PRESS) {
-            std::cout << normalCoefficient << std::endl;
         }
     }
 

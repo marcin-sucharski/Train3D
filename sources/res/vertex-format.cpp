@@ -15,5 +15,11 @@ namespace train {
             {"in_pos",  0, 3, GL_FLOAT},
             {"in_texc", 1, 2, GL_FLOAT},
         };
+
+        VertexDefinition StandardVertex::Definition = {
+            {"in_pos",    0, 3, GL_FLOAT},
+            {"in_normal", 1, 3, GL_FLOAT},
+            {"in_texc",   2, 2, GL_FLOAT},
+        };
     }
 }

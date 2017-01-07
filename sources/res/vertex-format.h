@@ -25,6 +25,14 @@ namespace train {
 
             static VertexDefinition Definition;
         };
+
+        struct StandardVertex {
+            glm::vec3 position;
+            glm::vec3 normal;
+            glm::vec2 textureCoordinate;
+
+            static VertexDefinition Definition;
+        };
     }
 }
 

@@ -8,7 +8,7 @@ using namespace std;
 
 namespace train {
     namespace res {
-        MeshData<SimpleVertex> MeshGenerator::SampleTriangle() {
+        MeshData<SimpleVertex> MeshGenerator::sampleTriangle() {
             std::vector<SimpleVertex> vertices = {
                 {{0.0f,  0.5f,  0.0f}, {1.0f, 0.0f, 0.0f}},
                 {{-0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
@@ -18,7 +18,7 @@ namespace train {
             return MeshData<SimpleVertex>(std::move(vertices));
         }
 
-        MeshData<SimpleVertex> MeshGenerator::ColoredCube(glm::vec3 position, float scale) {
+        MeshData<SimpleVertex> MeshGenerator::coloredCube(glm::vec3 position, float scale) {
             const std::vector<SimpleVertex> pos = {
                 {{-1.0f, 1.0f,  -1.0f}, {1.0f, 0.0f, 0.0f}},
                 {{-1.0f, 1.0f,  1.0f},  {0.0f, 1.0f, 0.0f}},
@@ -63,7 +63,7 @@ namespace train {
             return MeshData<SimpleVertex>(std::move(vertices));
         }
 
-        MeshData<TexturedVertex> MeshGenerator::TexturedCube() {
+        MeshData<TexturedVertex> MeshGenerator::texturedCube() {
             std::vector<TexturedVertex> pos = {
                 {{-1.0f, 1.0f,  -1.0f}, {0.0f, 0.0f}},
                 {{-1.0f, 1.0f,  1.0f},  {1.0f, 0.0f}},
@@ -105,22 +105,44 @@ namespace train {
             return MeshData<TexturedVertex>(std::move(vertices));
         }
 
-        MeshData<GridVertex> MeshGenerator::Grid(int width, int height, float cellSize) {
-            assert(width > 0 && "Width has to be greater than 0");
-            assert(height > 0 && "Height has to be greater than 0");
+        namespace {
+            const std::size_t VertexCountInQuad = 6;
 
-            const std::size_t TriangleCount = static_cast<size_t>(2 * width * height);
-            const std::size_t VertexCount = 3 * TriangleCount;
+            template<typename VertexType, typename QuadGen>
+            MeshData<VertexType> gridGen(int width, int height, float cellSize, QuadGen quadGen) {
+                assert(width > 0 && "Width has to be greater than 0");
+                assert(height > 0 && "Height has to be greater than 0");
 
-            std::vector<GridVertex> vertices;
-            vertices.reserve(VertexCount);
+                const std::size_t TriangleCount = static_cast<size_t>(2 * width * height);
+                const std::size_t VertexCount = 3 * TriangleCount;
 
-            const float StartX = -width * cellSize * 0.5f;
-            const float StartZ = -height * cellSize * 0.5f;
+                std::vector<VertexType> vertices;
+                vertices.reserve(VertexCount);
 
-            for (float z = StartZ; z < -StartZ; z += cellSize) {
-                for (float x = StartX; x < -StartX; x += cellSize) {
-                    GridVertex quad[] = {
+                const float SizeX = width * cellSize;
+                const float SizeZ = height * cellSize;
+
+                for (float z = 0.0f; z < SizeZ; z += cellSize) {
+                    for (float x = 0.0f; x < SizeX; x += cellSize) {
+                        VertexType quad[VertexCountInQuad];
+                        quadGen(x, z, quad);
+
+                        vertices.insert(
+                            vertices.end(),
+                            quad,
+                            quad + sizeof(quad) / sizeof(quad[0])
+                        );
+                    }
+                }
+
+                return MeshData<VertexType>(std::move(vertices));
+            }
+        }
+
+        MeshData<GridVertex> MeshGenerator::grid(int width, int height, float cellSize) {
+            return gridGen<GridVertex>(width, height, cellSize,
+                [cellSize](float x, float z, GridVertex result[VertexCountInQuad]) {
+                    GridVertex temp[VertexCountInQuad] = {
                         {{x + cellSize, z}},
                         {{x,            z}},
                         {{x,            z + cellSize}},
@@ -129,22 +151,48 @@ namespace train {
                         {{x,            z + cellSize}},
                         {{x + cellSize, z + cellSize}},
                     };
+                    std::copy(temp, temp + VertexCountInQuad, result);
+                });
+        }
 
-                    vertices.insert(
-                        vertices.end(),
-                        quad,
-                        quad + sizeof(quad) / sizeof(quad[0])
-                    );
-                }
-            }
+        MeshData<StandardVertex> MeshGenerator::terrain(
+            int width,
+            int height,
+            util::HeightProvider &heightProvider,
+            float cellSize
+        ) {
+            return gridGen<StandardVertex>(width, height, cellSize,
+                [cellSize, &heightProvider](float x1, float z1, StandardVertex result[VertexCountInQuad]) {
+                    float x[2] = {x1, x1 + cellSize};
+                    float z[2] = {z1, z1 + cellSize};
+                    auto genVertex = [&](int x_idx, int z_idx) -> StandardVertex {
+                        auto pos = glm::vec2(x[x_idx], z[z_idx]);
+                        return {
+                            {x[x_idx], heightProvider.getHeight(pos), z[z_idx]},
+                            heightProvider.getNormal(pos),
+                            {static_cast<float>(x_idx), static_cast<float>(z_idx)}
+                        };
+                    };
+                    
+                    float x2 = x1 + cellSize;
+                    auto z2 = z1 + cellSize;
+                    StandardVertex temp[VertexCountInQuad] = {
+                        genVertex(1, 0),
+                        genVertex(1, 1),
+                        genVertex(0, 1),
 
-            return MeshData<GridVertex>(std::move(vertices));
+                        genVertex(1, 0),
+                        genVertex(0, 1),
+                        genVertex(1, 1)
+                    };
+                    std::copy(temp, temp + VertexCountInQuad, result);
+                });
         }
 
         MeshData<SimpleVertex> MeshGenerator::rails(util::CurveProvider &curveProvider) {
             const float tieDistance = 0.5f;
             const float width = 2.0f;
-            const float baseStep = 0.1f;
+            const float baseStep = 0.05f;
             const float limit = 0.001f;
 
             float currentDistance = 0.0f;
@@ -172,7 +220,7 @@ namespace train {
                     if (distance < tieDistance && position == 1.0f) {
                         break;
                     }
-                } while(result);
+                } while (result);
 
                 currentDistance = position;
                 return nextPoint;
@@ -180,7 +228,7 @@ namespace train {
 
             MeshData<SimpleVertex> result;
             while (glm::abs(currentDistance - 1.0f) > limit) {
-                result = result.merge(ColoredCube(currentPoint.position, 0.2f));
+                result = result.merge(coloredCube(currentPoint.position, 0.2f));
                 currentPoint = getNextPoint();
             }
 

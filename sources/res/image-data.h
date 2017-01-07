@@ -26,7 +26,7 @@ namespace train {
                 return *this;
             }
 
-            std::vector<std::int8_t> data;
+            std::vector<std::uint8_t> data;
             std::int32_t width;
             std::int32_t height;
             GLenum format;

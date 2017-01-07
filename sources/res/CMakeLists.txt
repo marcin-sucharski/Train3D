@@ -6,6 +6,8 @@ set(SOURCE_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/image-curve-provider.h
     ${CMAKE_CURRENT_SOURCE_DIR}/image-curve-provider.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/image-data.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/image-height-provider.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/image-height-provider.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/image-loader.h
     ${CMAKE_CURRENT_SOURCE_DIR}/image-loader.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/mesh-data.h

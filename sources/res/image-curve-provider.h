@@ -3,22 +3,28 @@
 
 #include <glm/glm.hpp>
 #include "../util/curve-provider.h"
+#include "../util/height-provider.h"
 #include "image-data.h"
 
 namespace train {
     namespace res {
         class ImageCurveProvider : public util::CurveProvider {
-            const ImageData& imageData;
+            const glm::vec3 terrainScale;
             const std::vector<glm::vec2> shapePoints;
+            util::HeightProvider &heightProvider;
 
         public:
-            ImageCurveProvider(const ImageData& imageData, std::vector<glm::vec2> shapePoints);
+            ImageCurveProvider(
+                util::HeightProvider& heightProvider,
+                glm::vec3 terrainScale,
+                std::vector<glm::vec2> shapePoints
+            );
 
         protected:
             util::CurvePoint getPointImpl(float t) override;
 
         private:
-            float getHeight(glm::vec2 pos) const;
+            glm::vec2 getImagePos(float t) const;
         };
     }
 }

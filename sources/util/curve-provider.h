@@ -9,6 +9,11 @@ namespace train {
             glm::vec3 position;
             glm::vec3 up;
             glm::vec3 forward;
+
+            CurvePoint() = default;
+
+            CurvePoint(glm::vec3 position, glm::vec3 up, glm::vec3 forward)
+                : position(position), up(up), forward(forward) {}
         };
 
         struct CurveProvider {

@@ -19,7 +19,7 @@ void main(void) {
     vec2 coord = toHeightMapSpace(in_pos, terrainSize);
     float h = height(coord, terrainTexture);
 
-    vec3 off = vec3(0.1, 0.1, 0.0);
+    vec3 off = vec3(0.01, 0.01, 0.0);
     float hL = height(toHeightMapSpace(in_pos - off.xz, terrainSize), terrainTexture);
     float hR = height(toHeightMapSpace(in_pos + off.xz, terrainSize), terrainTexture);
     float hD = height(toHeightMapSpace(in_pos - off.zy, terrainSize), terrainTexture);

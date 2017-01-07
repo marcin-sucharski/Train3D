@@ -40,8 +40,6 @@ int main() {
         "frag/terrain.glsl",
         gridData.vertexDefinition
     );
-    auto terrainTexture = train::gfx::Texture::fromFile("data/textures/terrain_1.png");
-    const auto terrainScale = glm::vec3(terrainWidth, terrainHeight, 64.f);
 
     const auto lightCubeData = train::res::MeshGenerator::coloredCube();
     auto lightCube = train::gfx::Mesh::create(lightCubeData);
@@ -51,23 +49,52 @@ int main() {
         lightCubeData.vertexDefinition
     );
 
-    auto circle = train::util::CircleCurveProvider(glm::vec3(0.f, 45.f, 0.f), 40.0f);
-    const auto circleRailsData= train::res::MeshGenerator::rails(circle);
-    auto circleRails = train::gfx::Mesh::create(circleRailsData);
-
-    train::env::File terrainTextureFile("data/textures/terrain_1.png");
+    train::env::File terrainTextureFile("data/textures/terrain_2.png");
     train::res::ImageData terrainTextureData = train::res::ImageLoader::load(terrainTextureFile);
-    train::res::ImageHeightProvider heightProvider(terrainTextureData, terrainScale.z);
+    const auto terrainScale = glm::vec3(terrainWidth, terrainHeight, 48.f);
+    train::res::ImageHeightProvider heightProvider(terrainTextureData);
+
+    auto terrainMeshData = train::res::MeshGenerator::terrain(
+        terrainWidth, terrainHeight,
+        heightProvider,
+        terrainScale.z
+    );
+    auto terrainMesh = train::gfx::Mesh::create(terrainMeshData);
+    auto grassTexture = train::gfx::Texture::fromFile("data/textures/grass_grass_0124_01_tiled_s.jpg");
+    auto rockTexture = train::gfx::Texture::fromFile("data/textures/ground_stone_ground_0002_02_tiled_s.jpg");
+
     auto railsCurve = train::res::ImageCurveProvider(heightProvider, terrainScale, {
-        glm::vec2(0.2f, 0.2f),
-        glm::vec2(0.6f, 0.3f),
-        glm::vec2(0.7f, 0.5f),
-        glm::vec2(0.8f, 0.7f),
-        glm::vec2(0.7f, 0.8f),
-        glm::vec2(0.5f, 0.8f),
-        glm::vec2(0.4f, 0.6f),
-        glm::vec2(0.3f, 0.4f),
-        glm::vec2(0.2f, 0.2f)
+        glm::vec2(0.288303, 0.240586),
+        glm::vec2(0.276757, 0.340764),
+        glm::vec2(0.272813, 0.548107),
+        glm::vec2(0.293575, 0.617194),
+        glm::vec2(0.348842, 0.690956),
+        glm::vec2(0.411263, 0.73931),
+        glm::vec2(0.484306, 0.766086),
+        glm::vec2(0.550069, 0.784728),
+        glm::vec2(0.595381, 0.790535),
+        glm::vec2(0.674657, 0.783739),
+        glm::vec2(0.739287, 0.763628),
+        glm::vec2(0.771424, 0.724455),
+        glm::vec2(0.790399, 0.691322),
+        glm::vec2(0.807127, 0.639125),
+        glm::vec2(0.814835, 0.609894),
+        glm::vec2(0.828993, 0.52728),
+        glm::vec2(0.823483, 0.444588),
+        glm::vec2(0.814181, 0.371234),
+        glm::vec2(0.801099, 0.329199),
+        glm::vec2(0.766606, 0.279841),
+        glm::vec2(0.71984, 0.238458),
+        glm::vec2(0.66224, 0.21283),
+        glm::vec2(0.586086, 0.201889),
+        glm::vec2(0.51724, 0.183282),
+        glm::vec2(0.442815, 0.163004),
+        glm::vec2(0.374567, 0.154858),
+        glm::vec2(0.325035, 0.156444),
+        glm::vec2(0.309431, 0.173424),
+        glm::vec2(0.294111, 0.199631),
+        glm::vec2(0.287147, 0.233636),
+        glm::vec2(0.288303, 0.240586)
     });
     const auto railsMeshData = train::res::MeshGenerator::rails(railsCurve);
     auto rails = train::gfx::Mesh::create(railsMeshData);
@@ -77,17 +104,14 @@ int main() {
     realTimeTimeStep.start();
 
     float normalCoefficient = 0.0012f;
-    glm::vec3 lightPos(0.0f, 512.0f, 0.0f);
 
     glEnable(GL_DEPTH_TEST);
-    //glEnable(GL_CULL_FACE);
+    glEnable(GL_CULL_FACE);
     glCullFace(GL_CCW);
+
     while (mainWindow.exists()) {
         train::env::Window::processEvents();
         realTimeTimeStep.tick();
-
-        lightPos.x = std::sin(static_cast<float>(glfwGetTime() / 3.)) * 1024.0f;
-        lightPos.z = std::cos(static_cast<float>(glfwGetTime() / 3.)) * 1024.0f;
 
         glClearColor(0.0, 1.0f, 1.0f, 1.0f);
         glClearDepth(1.0f);
@@ -95,22 +119,18 @@ int main() {
 
         shaderProgram.bind();
         shaderProgram.setUniform("projectionView", camera.getProjectionView());
-        shaderProgram.setUniform("terrainSize", terrainScale);
-        shaderProgram.setUniform("normalCoefficient", normalCoefficient);
-        shaderProgram.setUniform("lightPos", lightPos);
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, terrainTexture.getHandle());
-        shaderProgram.setUniform("terrainTexture", 0);
-
-        grid.draw();
+        glBindTexture(GL_TEXTURE_2D, grassTexture.getHandle());
+        shaderProgram.setUniform("textureGrass", 0);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, rockTexture.getHandle());
+        shaderProgram.setUniform("textureRock", 1);
+        terrainMesh.draw();
         shaderProgram.unbind();
 
         cubeShaderProgram.bind();
         cubeShaderProgram.setUniform("projectionView", camera.getProjectionView());
-        cubeShaderProgram.setUniform("model", glm::translate(glm::mat4x4(), lightPos));
-        lightCube.draw();
         cubeShaderProgram.setUniform("model", glm::mat4x4());
-        circleRails.draw();
         rails.draw();
         cubeShaderProgram.unbind();
 

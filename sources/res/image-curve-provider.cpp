@@ -14,25 +14,22 @@ namespace train {
         }
 
         util::CurvePoint train::res::ImageCurveProvider::getPointImpl(float t) {
-            const float diff = 0.01;
-            const auto curr = getImagePos(t);
-            const auto next = getImagePos(t + diff);
+            const float diff = 0.0001;
+            const bool fakeNext = (t + diff) > 1.0f;
+
+            const auto curr = getImagePos(t), next = getImagePos(fakeNext ? t - diff : t + diff);
 
             const auto currPos = vec3(curr.x, heightProvider.getHeight(curr), curr.y);
             const auto nextPos = vec3(next.x, heightProvider.getHeight(next), next.y);
+            const auto forward = normalize(fakeNext ? currPos - nextPos : nextPos - currPos);
 
-            const auto forward = normalize(nextPos - currPos);
+            const auto up = heightProvider.getNormal(curr);
+            const auto pos = vec3(
+                currPos.x * (terrainScale.x + 1),
+                currPos.y * terrainScale.z,
+                currPos.z * (terrainScale.y + 1)
+            );
 
-            const auto off = vec3(0.01f, 0.01f, 0.0);
-            const float hL = heightProvider.getHeight(curr - vec2(off.x, off.z));
-            const float hR = heightProvider.getHeight(curr + vec2(off.x, off.z));
-            const float hD = heightProvider.getHeight(curr - vec2(off.z, off.y));
-            const float hU = heightProvider.getHeight(curr + vec2(off.z, off.y));
-
-            const auto up = normalize(vec3(hL - hR, hD - hU, 0.0012f));
-            const auto pos = vec3(currPos.x * terrainScale.x, currPos.y, currPos.z * terrainScale.y);
-
-            cout << "t=" << t << "; pos=vec3(" << pos.x << ", " << pos.y << ", " << pos.z << ")" << endl;
             return util::CurvePoint(pos, up, forward);
         }
 

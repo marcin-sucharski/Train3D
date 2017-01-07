@@ -1,18 +1,24 @@
 #version 130
 #name "terrain.frag"
 
-precision highp float;
-
-in  vec3 ex_color;
 in  vec3 ex_normal;
 in  vec3 ex_pos;
+in  vec2 ex_texc;
 
-uniform vec3 lightPos;
+uniform sampler2D textureGrass;
+uniform sampler2D textureRock;
 
 void main(void) {
-    vec3 lightDir = normalize(ex_pos - lightPos);
+    vec3 lightDir = normalize(vec3(1, 1.3, 1));
     float ambient = 0.1;
 
-    gl_FragColor = vec4(ex_color, 1.0) * max(ambient, dot(normalize(ex_normal), lightDir));
-    //gl_FragColor = vec4(ex_normal, 1.0);
+    vec4 grass = texture(textureGrass, ex_texc);
+    vec4 rock = texture(textureRock, ex_texc);
+
+    float rockPercent = pow(clamp(1.0 - dot(ex_normal, vec3(0.0, 1.0, 0.0)) + 0.2, 0.0, 1.0), 16);
+
+    vec4 color = rock * rockPercent + grass * (1.0 - rockPercent);
+
+    float diffLight = max(dot(normalize(ex_normal), lightDir), 0);
+    gl_FragColor = color * (ambient + diffLight);
 }

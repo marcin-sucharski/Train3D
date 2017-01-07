@@ -8,10 +8,9 @@ namespace train {
     namespace res {
         class ImageHeightProvider : public util::HeightProvider {
             ImageData &imageData;
-            float heightScale;
 
         public:
-            ImageHeightProvider(ImageData &imageData, float heightScale);
+            ImageHeightProvider(ImageData &imageData);
 
             float getHeight(glm::vec2 pos) override;
 

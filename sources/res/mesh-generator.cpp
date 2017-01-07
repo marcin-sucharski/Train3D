@@ -159,16 +159,18 @@ namespace train {
             int width,
             int height,
             util::HeightProvider &heightProvider,
+            float heightScale,
             float cellSize
         ) {
+            float fw = static_cast<float>(width + 1), fh = static_cast<float>(height + 1);
             return gridGen<StandardVertex>(width, height, cellSize,
-                [cellSize, &heightProvider](float x1, float z1, StandardVertex result[VertexCountInQuad]) {
+                [&](float x1, float z1, StandardVertex result[VertexCountInQuad]) {
                     float x[2] = {x1, x1 + cellSize};
                     float z[2] = {z1, z1 + cellSize};
                     auto genVertex = [&](int x_idx, int z_idx) -> StandardVertex {
-                        auto pos = glm::vec2(x[x_idx], z[z_idx]);
+                        auto pos = glm::vec2(x[x_idx] / fw, z[z_idx] / fh);
                         return {
-                            {x[x_idx], heightProvider.getHeight(pos), z[z_idx]},
+                            {x[x_idx], heightProvider.getHeight(pos) * heightScale, z[z_idx]},
                             heightProvider.getNormal(pos),
                             {static_cast<float>(x_idx), static_cast<float>(z_idx)}
                         };
@@ -178,7 +180,7 @@ namespace train {
                     auto z2 = z1 + cellSize;
                     StandardVertex temp[VertexCountInQuad] = {
                         genVertex(1, 0),
-                        genVertex(1, 1),
+                        genVertex(0, 0),
                         genVertex(0, 1),
 
                         genVertex(1, 0),
@@ -192,7 +194,7 @@ namespace train {
         MeshData<SimpleVertex> MeshGenerator::rails(util::CurveProvider &curveProvider) {
             const float tieDistance = 0.5f;
             const float width = 2.0f;
-            const float baseStep = 0.05f;
+            const float baseStep = 0.005f;
             const float limit = 0.001f;
 
             float currentDistance = 0.0f;
@@ -228,7 +230,7 @@ namespace train {
 
             MeshData<SimpleVertex> result;
             while (glm::abs(currentDistance - 1.0f) > limit) {
-                result = result.merge(coloredCube(currentPoint.position, 0.2f));
+                result.mergeInplace(coloredCube(currentPoint.position, 0.2f));
                 currentPoint = getNextPoint();
             }
 

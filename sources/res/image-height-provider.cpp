@@ -1,14 +1,18 @@
 #include "image-height-provider.h"
+#include <cassert>
 
 namespace train {
     namespace res {
-        ImageHeightProvider::ImageHeightProvider(ImageData &imageData, float heightScale)
-            : imageData(imageData), heightScale(heightScale) {
+        ImageHeightProvider::ImageHeightProvider(ImageData &imageData)
+            : imageData(imageData) {
         }
 
         float ImageHeightProvider::getHeight(glm::vec2 pos) {
-            const float exactPosX = pos.x * static_cast<float>(imageData.width + 1);
-            const float exactPosY = pos.y * static_cast<float>(imageData.height + 1);
+            assert(pos.x >= 0.0f && pos.x <= 1.0f);
+            assert(pos.y >= 0.0f && pos.y <= 1.0f);
+
+            const float exactPosX = pos.x * static_cast<float>(imageData.width - 1);
+            const float exactPosY = pos.y * static_cast<float>(imageData.height - 1);
 
             const std::size_t x_lower = static_cast<std::size_t>(glm::floor(exactPosX));
             const std::size_t y_lower = static_cast<std::size_t>(glm::floor(exactPosY));
@@ -17,10 +21,13 @@ namespace train {
             const std::size_t y_upper = static_cast<std::size_t>(glm::ceil(exactPosY));
 
             auto getPixelHeight = [&](std::size_t x, std::size_t y) {
+                assert(x >= 0 && x < imageData.width);
+                assert(y >= 0 && y < imageData.height);
+
                 const auto idx = y * imageData.width + x;
                 const std::size_t bytesPerPixel = 3;
                 const std::uint8_t rawValue = imageData.data[idx * bytesPerPixel];
-                return static_cast<float>(rawValue) / std::numeric_limits<std::uint8_t>::max() * heightScale;
+                return static_cast<float>(rawValue) / std::numeric_limits<std::uint8_t>::max();
             };
 
             const float bottom[2] = {getPixelHeight(x_lower, y_lower), getPixelHeight(x_upper, y_lower)};

@@ -34,11 +34,14 @@ namespace train {
             MeshData merge(const MeshData &other) const {
                 assert(vertexDefinition == other.vertexDefinition);
 
-                std::vector<T> resultVertices;
-                resultVertices.reserve(vertices.size() + other.vertices.size());
-                resultVertices.insert(resultVertices.end(), vertices.begin(), vertices.end());
-                resultVertices.insert(resultVertices.end(), other.vertices.begin(), other.vertices.end());
-                return MeshData(std::move(resultVertices));
+                MeshData result;
+                result.mergeInplace(*this);
+                result.mergeInplace(other);
+                return std::move(result);
+            }
+
+            void mergeInplace(const MeshData &other) {
+                vertices.insert(vertices.end(), other.vertices.begin(), other.vertices.end());
             }
         };
 

@@ -21,6 +21,7 @@ namespace train {
                 int width,
                 int height,
                 util::HeightProvider &heightProvider,
+                float heightScale,
                 float cellSize = 1.0
             );
 

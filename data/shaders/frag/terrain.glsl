@@ -15,7 +15,7 @@ void main(void) {
     vec4 grass = texture(textureGrass, ex_texc);
     vec4 rock = texture(textureRock, ex_texc);
 
-    float rockPercent = pow(clamp(1.0 - dot(ex_normal, vec3(0.0, 1.0, 0.0)) + 0.2, 0.0, 1.0), 16);
+    float rockPercent = pow(clamp(1.0 - dot(ex_normal, vec3(0.0, 1.0, 0.0)) + 0.7, 0.0, 1.0), 16);
 
     vec4 color = rock * rockPercent + grass * (1.0 - rockPercent);
 

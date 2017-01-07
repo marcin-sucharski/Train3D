@@ -23,7 +23,7 @@ namespace train {
             const auto nextPos = vec3(next.x, heightProvider.getHeight(next), next.y);
             const auto forward = normalize(fakeNext ? currPos - nextPos : nextPos - currPos);
 
-            const auto up = heightProvider.getNormal(curr);
+            const auto up = heightProvider.getNormal(curr, vec3(terrainScale.x, terrainScale.z, terrainScale.y));
             const auto pos = vec3(
                 currPos.x * (terrainScale.x + 1),
                 currPos.y * terrainScale.z,

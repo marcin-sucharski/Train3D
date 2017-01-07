@@ -13,7 +13,7 @@ namespace train {
              */
             virtual float getHeight(glm::vec2 pos) = 0;
 
-            glm::vec3 getNormal(glm::vec2 pos);
+            glm::vec3 getNormal(glm::vec2 pos, glm::vec3 scale);
 
         protected:
             virtual glm::vec2 getElementSize() = 0;

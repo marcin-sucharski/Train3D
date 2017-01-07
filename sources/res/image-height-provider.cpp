@@ -43,7 +43,10 @@ namespace train {
         }
 
         glm::vec2 ImageHeightProvider::getElementSize() {
-            return glm::vec2(1.0f / static_cast<float>(imageData.width), 1.0f / static_cast<float>(imageData.height));
+            return glm::vec2(
+                1.0f / static_cast<float>(imageData.width + 1),
+                1.0f / static_cast<float>(imageData.height + 1)
+            );
         }
     }
 }

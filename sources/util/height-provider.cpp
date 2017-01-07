@@ -5,8 +5,14 @@ using namespace glm;
 
 namespace train {
     namespace util {
-        vec3 HeightProvider::getNormal(vec2 pos) {
-            auto getPoint = [this](vec2 realPos) { return vec3(realPos.x, getHeight(realPos), realPos.y); };
+        vec3 HeightProvider::getNormal(vec2 pos, glm::vec3 scale) {
+            auto getPoint = [this, scale](vec2 p) {
+                return vec3(
+                    p.x * scale.x,
+                    getHeight(p) * scale.y,
+                    p.y * scale.z
+                );
+            };
             auto has = [](vec2 p) { return p.x >= 0.0f && p.x <= 1.0f && p.y >= 0.0f && p.y <= 1.0f; };
 
             const vec2 element = getElementSize();
@@ -23,7 +29,7 @@ namespace train {
             auto tryAdd = [&](vec2 first, vec2 second) {
                 if (has(first) && has(second)) {
                     auto p1 = getPoint(first), p2 = getPoint(second);
-                    result += normalize(cross(p1 - center, p2 - center));
+                    result += cross(p1 - center, p2 - center);
                 }
             };
 

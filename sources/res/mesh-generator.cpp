@@ -5,6 +5,7 @@
 #include "vertex-format.h"
 
 using namespace std;
+using namespace glm;
 
 namespace train {
     namespace res {
@@ -18,7 +19,7 @@ namespace train {
             return MeshData<SimpleVertex>(std::move(vertices));
         }
 
-        MeshData<SimpleVertex> MeshGenerator::coloredCube(glm::vec3 position, float scale) {
+        MeshData<SimpleVertex> MeshGenerator::coloredCube(vec3 position, float scale) {
             const std::vector<SimpleVertex> pos = {
                 {{-1.0f, 1.0f,  -1.0f}, {1.0f, 0.0f, 0.0f}},
                 {{-1.0f, 1.0f,  1.0f},  {0.0f, 1.0f, 0.0f}},
@@ -168,10 +169,10 @@ namespace train {
                     float x[2] = {x1, x1 + cellSize};
                     float z[2] = {z1, z1 + cellSize};
                     auto genVertex = [&](int x_idx, int z_idx) -> StandardVertex {
-                        auto pos = glm::vec2(x[x_idx] / fw, z[z_idx] / fh);
+                        auto pos = vec2(x[x_idx] / fw, z[z_idx] / fh);
                         return {
                             {x[x_idx], heightProvider.getHeight(pos) * heightScale, z[z_idx]},
-                            heightProvider.getNormal(pos),
+                            heightProvider.getNormal(pos, vec3(width, heightScale, height)),
                             {static_cast<float>(x_idx), static_cast<float>(z_idx)}
                         };
                     };
@@ -208,18 +209,18 @@ namespace train {
                 do {
                     prevPosition = position;
                     position += step;
-                    position = glm::clamp(position, 0.0f, 1.0f);
+                    position = clamp(position, 0.0f, 1.0f);
 
                     nextPoint = curveProvider.getPoint(position);
-                    const float distance = glm::distance(currentPoint.position, nextPoint.position);
-                    result = glm::abs(distance - tieDistance) >= limit;
+                    const float dis = distance(currentPoint.position, nextPoint.position);
+                    result = abs(dis - tieDistance) >= limit;
 
-                    if (distance > tieDistance) {
+                    if (dis > tieDistance) {
                         position = prevPosition;
                         step *= 0.5f;
                     }
 
-                    if (distance < tieDistance && position == 1.0f) {
+                    if (dis < tieDistance && position == 1.0f) {
                         break;
                     }
                 } while (result);
@@ -228,11 +229,112 @@ namespace train {
                 return nextPoint;
             };
 
+            const float tieWidth = 1.0f, tieHeight = 0.2;
+            auto buildTie = [&](const util::CurvePoint &p) {
+                const auto dir = normalize(cross(p.forward, p.up));
+                const auto halfUp = p.up * 0.5f * tieHeight;
+                const auto halfForward = p.forward * 0.5f * tieHeight;
+                const auto halfDir = dir * 0.5f * tieWidth;
+
+                const glm::vec3 off[4] = {
+                    -halfUp - halfForward,
+                    +halfUp - halfForward,
+                    +halfUp + halfForward,
+                    -halfUp + halfForward
+                };
+
+                const vec3 color(165.0f / 255.0f, 42.0f / 256.0f, 42.0f / 256.0f);
+                SimpleVertex left[4], right[4];
+                for (int i = 0; i < 4; ++i) {
+                    left[i] = SimpleVertex {p.position - halfDir + off[i], color};
+                    right[i] = SimpleVertex {p.position + halfDir + off[i], color};
+                }
+
+                vector<SimpleVertex> vertices = {
+                    right[2], right[1], right[0],
+                    right[3], right[2], right[0],
+
+                    left[0], left[1], left[2],
+                    left[0], left[2], left[3],
+
+                    left[1], left[0], right[0],
+                    right[1], left[1], right[0],
+
+                    left[2], left[1], right[1],
+                    right[2], left[2], right[1],
+
+                    left[3], left[2], right[2],
+                    right[3], left[3], right[2],
+
+                    right[0], left[3], right[3],
+                    right[0], left[0], left[3]
+                };
+
+                return MeshData<SimpleVertex>(move(vertices));
+            };
+            const float railHeight = 0.1f, railSpacing = 0.75f;
+            auto buildRailElement = [&](const util::CurvePoint &curr, const util::CurvePoint &next) {
+                auto getEndpointVertices = [&](
+                    const util::CurvePoint &p,
+                    SimpleVertex outLeft[4],
+                    SimpleVertex outRight[4]
+                ) {
+                    const auto dir = normalize(cross(p.forward, p.up));
+                    const auto halfUp = p.up * 0.5f * railHeight;
+                    const auto halfSide = dir * 0.5f * railHeight;
+                    const auto halfDir = dir * 0.5f * tieWidth * railSpacing;
+                    const auto halfTieHeight = p.up * tieHeight * 0.7f;
+
+                    const vec3 color(0.5f, 0.5f, 0.5f);
+
+                    const vec3 off[4] = {
+                        -halfUp - halfSide,
+                        +halfUp - halfSide,
+                        +halfUp + halfSide,
+                        -halfUp + halfSide
+                    };
+                    for (int i = 0; i < 4; ++i) {
+                        outLeft[i] = SimpleVertex {p.position + halfTieHeight - halfDir + off[i], color };
+                        outRight[i] = SimpleVertex {p.position + halfTieHeight + halfDir + off[i], color };
+                    }
+                };
+                auto mergeEndpoints = [](const SimpleVertex begin[4], const SimpleVertex end[4]) {
+                    return MeshData<SimpleVertex>({
+                        begin[0], end[0], end[1],
+                        begin[0], end[1], begin[1],
+
+                        begin[1], end[1], end[2],
+                        begin[1], end[2], begin[2],
+
+                        begin[2], end[2], end[3],
+                        begin[2], end[3], begin[3],
+
+                        begin[3], end[3], end[0],
+                        begin[3], end[0], begin[0],
+                    });
+                };
+
+                SimpleVertex first[2][4], second[2][4];
+                getEndpointVertices(curr, first[0], first[1]);
+                getEndpointVertices(next, second[0], second[1]);
+
+                MeshData<SimpleVertex> result;
+                result.mergeInplace(mergeEndpoints(first[0], second[0]));
+                result.mergeInplace(mergeEndpoints(first[1], second[1]));
+                return move(result);
+            };
+
             MeshData<SimpleVertex> result;
-            while (glm::abs(currentDistance - 1.0f) > limit) {
-                result.mergeInplace(coloredCube(currentPoint.position, 0.2f));
-                currentPoint = getNextPoint();
+            auto nextPoint = getNextPoint();
+            while (abs(currentDistance - 1.0f) > limit) {
+                result.mergeInplace(buildTie(currentPoint));
+                result.mergeInplace(buildRailElement(currentPoint, nextPoint));
+
+                currentPoint = nextPoint;
+                nextPoint = getNextPoint();
             }
+            result.mergeInplace(buildTie(nextPoint));
+            result.mergeInplace(buildRailElement(nextPoint, curveProvider.getPoint(0.0f)));
 
             return move(result);
         }

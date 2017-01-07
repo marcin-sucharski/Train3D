@@ -1,0 +1,10 @@
+set(SOURCE_FILES
+    ${SOURCE_FILES}
+
+    ${CMAKE_CURRENT_SOURCE_DIR}/object.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/rails.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/rails.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/terrain.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/terrain.h
+
+    PARENT_SCOPE)

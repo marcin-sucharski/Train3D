@@ -1,8 +1,8 @@
 #include "mesh-generator.h"
 #include <vector>
 #include <cassert>
-#include <iostream>
 #include "vertex-format.h"
+#include "../util/curve-iterator.h"
 
 using namespace std;
 using namespace glm;
@@ -195,39 +195,8 @@ namespace train {
         MeshData<StandardVertex> MeshGenerator::rails(util::CurveProvider &curveProvider) {
             const float tieDistance = 0.5f;
             const float width = 2.0f;
-            const float baseStep = 0.005f;
-            const float limit = 0.001f;
 
-            float currentDistance = 0.0f;
-            util::CurvePoint currentPoint = curveProvider.getPoint(currentDistance);
-            auto getNextPoint = [&]() {
-                float step = baseStep;
-                float position = currentDistance, prevPosition;
-
-                util::CurvePoint nextPoint;
-                bool result;
-                do {
-                    prevPosition = position;
-                    position += step;
-                    position = clamp(position, 0.0f, 1.0f);
-
-                    nextPoint = curveProvider.getPoint(position);
-                    const float dis = distance(currentPoint.position, nextPoint.position);
-                    result = abs(dis - tieDistance) >= limit;
-
-                    if (dis > tieDistance) {
-                        position = prevPosition;
-                        step *= 0.5f;
-                    }
-
-                    if (dis < tieDistance && position == 1.0f) {
-                        break;
-                    }
-                } while (result);
-
-                currentDistance = position;
-                return nextPoint;
-            };
+            util::CurveIterator points(curveProvider);
 
             const float tieWidth = 1.0f, tieHeight = 0.2;
             auto buildTie = [&](const util::CurvePoint &p) {
@@ -362,12 +331,13 @@ namespace train {
             };
 
             MeshData<StandardVertex> result;
+            auto currentPoint = points.getCurrentPoint();
             do {
-                auto nextPoint = getNextPoint();
+                auto nextPoint = points.getNext(tieDistance);
                 result.mergeInplace(buildTie(currentPoint));
                 result.mergeInplace(buildRailElement(currentPoint, nextPoint));
                 currentPoint = nextPoint;
-            } while (abs(currentDistance - 1.0f) > limit);
+            } while (points.hasNext());
             result.mergeInplace(buildRailElement(currentPoint, curveProvider.getPoint(0.0f)));
 
             return move(result);

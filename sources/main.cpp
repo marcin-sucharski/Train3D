@@ -20,6 +20,8 @@ using namespace std::placeholders;
 const int initialWindowWidth = 800;
 const int initialWindowHeight = 600;
 
+
+
 int main() {
     train::env::Window mainWindow;
     mainWindow.init(initialWindowWidth, initialWindowHeight, "Train", false);
@@ -86,7 +88,7 @@ int main() {
         glm::vec2(0.294111, 0.199631),
         glm::vec2(0.287147, 0.233636)
     };
-    glm::vec2 mergeDir = railsShapePoints[0] - railsShapePoints.back();
+    const glm::vec2 mergeDir = railsShapePoints[0] - railsShapePoints.back();
     railsShapePoints.push_back(railsShapePoints.back() + mergeDir * 0.9f);
     auto railsCurve = train::res::ImageCurveProvider(
         heightProvider,

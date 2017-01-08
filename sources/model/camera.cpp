@@ -4,7 +4,7 @@
 namespace train {
     namespace model {
         void Camera::setupProjection(float viewWidth, float viewHeight) {
-            const float defaultFov = 75.0f;
+            const float defaultFov = 90.0f;
             const float defaultZNear = 0.1f;
             const float defaultZFar = 2048.0f;
 

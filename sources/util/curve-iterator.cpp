@@ -8,8 +8,8 @@ namespace train {
         const float CurveIterator::limit = 0.001f;
 
         CurveIterator::CurveIterator(CurveProvider &curveProvider)
-            : curveProvider(curveProvider), currentPosition(0.0f) {
-            currentPoint = curveProvider.getPoint(currentPosition);
+            : curveProvider(curveProvider) {
+            restart();
         }
 
         const CurvePoint& CurveIterator::getCurrentPoint() const {
@@ -48,6 +48,11 @@ namespace train {
 
         bool CurveIterator::hasNext() const {
             return abs(currentPosition - 1.0f) > limit;
+        }
+
+        void CurveIterator::restart() {
+            currentPosition = 0.0f;
+            currentPoint = curveProvider.getPoint(currentPosition);
         }
     }
 }

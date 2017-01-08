@@ -13,6 +13,7 @@
 #include "util/circle-curve-provider.h"
 #include "obj/terrain.h"
 #include "obj/rails.h"
+#include "obj/train.h"
 
 using namespace std::placeholders;
 
@@ -33,9 +34,17 @@ int main() {
 
     train::obj::Terrain terrain(shaderManager);
     train::obj::Rails rails(shaderManager, terrain);
+    train::obj::Train trainObject(shaderManager, rails);
+
+    auto updateObjects = [&](double dt) {
+        terrain.update(dt);
+        rails.update(dt);
+        trainObject.update(dt);
+    };
 
     train::util::TimeStep realTimeTimeStep(train::util::TimeStep::Mode::Variable);
     realTimeTimeStep.addHandler(std::bind(&train::input::ICameraController::update, &cameraController, _1));
+    realTimeTimeStep.addHandler(updateObjects);
     realTimeTimeStep.start();
 
     glEnable(GL_DEPTH_TEST);
@@ -52,6 +61,7 @@ int main() {
 
         terrain.draw(camera);
         rails.draw(camera);
+        trainObject.draw(camera);
 
         mainWindow.present();
 

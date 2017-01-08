@@ -64,46 +64,70 @@ namespace train {
             return MeshData<SimpleVertex>(std::move(vertices));
         }
 
-        MeshData<TexturedVertex> MeshGenerator::texturedCube() {
-            std::vector<TexturedVertex> pos = {
-                {{-1.0f, 1.0f,  -1.0f}, {0.0f, 0.0f}},
-                {{-1.0f, 1.0f,  1.0f},  {1.0f, 0.0f}},
-                {{1.0f,  1.0f,  -1.0f}, {1.0f, 1.0f}},
-                {{1.0f,  1.0f,  1.0f},  {0.0f, 1.0f}},
+        MeshData<StandardVertex> MeshGenerator::texturedCube(glm::vec3 scale) {
+            std::vector<vec3> pos = {
+                {-1.0f, 1.0f,  -1.0f},
+                {-1.0f, 1.0f,  1.0f},
+                {1.0f,  1.0f,  -1.0f},
+                {1.0f,  1.0f,  1.0f},
 
-                {{-1.0f, -1.0f, -1.0f}, {1.0f, 0.0f}},
-                {{-1.0f, -1.0f, 1.0f},  {1.0f, 1.0f}},
-                {{1.0f,  -1.0f, -1.0f}, {0.0f, 1.0f}},
-                {{1.0f,  -1.0f, 1.0f},  {0.0f, 0.0f}},
+                {-1.0f, -1.0f, -1.0f},
+                {-1.0f, -1.0f, 1.0f},
+                {1.0f,  -1.0f, -1.0f},
+                {1.0f,  -1.0f, 1.0f},
             };
 
-            std::vector<TexturedVertex> vertices{
+            for (auto &p : pos) {
+                p.x *= scale.x;
+                p.y *= scale.y;
+                p.z *= scale.z;
+            }
+
+            const glm::vec2 texc[] = {
+                {0.0f, 0.0f},
+                {1.0f, 0.0f},
+                {0.0f, 1.0f},
+                {1.0f, 1.0f}
+            };
+
+            const glm::vec3 normal[] = {
+                {0.f, 1.f, 0.f},
+                {0.f, -1.f, 0.f},
+
+                {0.f, 0.f, -1.f},
+                {0.f, 0.f, 1.f},
+
+                {-1.f, 0.f, 0.f},
+                {1.f, 0.f, 0.f}
+            };
+
+            std::vector<StandardVertex> vertices{
                 // top
-                pos[1], pos[2], pos[0],
-                pos[3], pos[2], pos[1],
+                {pos[1], normal[0], texc[0]}, {pos[2], normal[0], texc[3]}, {pos[0], normal[0], texc[1]},
+                {pos[3], normal[0], texc[2]}, {pos[2], normal[0], texc[3]}, {pos[1], normal[0], texc[0]},
 
                 // bottom
-                pos[4], pos[6], pos[5],
-                pos[5], pos[6], pos[7],
+                {pos[4], normal[1], texc[0]}, {pos[6], normal[1], texc[1]}, {pos[5], normal[1], texc[3]},
+                {pos[5], normal[1], texc[3]}, {pos[6], normal[1], texc[1]}, {pos[7], normal[1], texc[2]},
 
                 // front
-                pos[0], pos[6], pos[4],
-                pos[2], pos[6], pos[0],
+                {pos[0], normal[2], texc[1]}, {pos[6], normal[2], texc[3]}, {pos[4], normal[2], texc[2]},
+                {pos[2], normal[2], texc[1]}, {pos[6], normal[2], texc[2]}, {pos[0], normal[2], texc[0]},
 
                 // back
-                pos[5], pos[7], pos[1],
-                pos[1], pos[7], pos[3],
+                {pos[5], normal[3], texc[2]}, {pos[7], normal[3], texc[3]}, {pos[1], normal[3], texc[1]},
+                {pos[1], normal[3], texc[1]}, {pos[7], normal[3], texc[3]}, {pos[3], normal[3], texc[0]},
 
                 // left
-                pos[5], pos[0], pos[4],
-                pos[1], pos[0], pos[5],
+                {pos[5], normal[4], texc[2]}, {pos[0], normal[4], texc[1]}, {pos[4], normal[4], texc[3]},
+                {pos[1], normal[4], texc[0]}, {pos[0], normal[4], texc[1]}, {pos[5], normal[4], texc[2]},
 
                 // right
-                pos[2], pos[7], pos[6],
-                pos[3], pos[7], pos[2],
+                {pos[2], normal[5], texc[0]}, {pos[7], normal[5], texc[3]}, {pos[6], normal[5], texc[3]},
+                {pos[3], normal[5], texc[1]}, {pos[7], normal[5], texc[3]}, {pos[2], normal[5], texc[0]},
             };
 
-            return MeshData<TexturedVertex>(std::move(vertices));
+            return MeshData<StandardVertex>(move(vertices));
         }
 
         namespace {
@@ -341,6 +365,45 @@ namespace train {
             result.mergeInplace(buildRailElement(currentPoint, curveProvider.getPoint(0.0f)));
 
             return move(result);
+        }
+
+        MeshData<StandardVertex> MeshGenerator::cylinder(int elements, float radius, float height) {
+            vector<StandardVertex> vertices;
+
+            const float angleChange = 2.f * pi<float>() / static_cast<float>(elements);
+            for (int i = 0; i < elements; ++i) {
+                const auto first = vec2(sin(i * angleChange), cos(i * angleChange));
+                const auto second = vec2(sin((i + 1) * angleChange), cos((i + 1) * angleChange));
+
+                const auto f = first * radius, s = second * radius;
+
+                const auto fN = normalize(vec3(f.x, 0.f, f.y)), sN = normalize(vec3(s.x, 0.f, s.y));
+
+                auto texcOff = vec2(0.5, 0.5);
+                StandardVertex circleFace[] = {
+                    {vec3(s.x, 0.f, s.y), vec3(0.f, -1.f, 0.f),   second + texcOff},
+                    {vec3(f.x, 0.f, f.y), vec3(0.f, -1.f, 0.f),   first + texcOff},
+                    {vec3(), vec3(0.f, -1.f, 0.f),                texcOff},
+
+                    {vec3(0.f, height, 0.f), vec3(0.f, 1.f, 0.f), texcOff},
+                    {vec3(f.x, height, f.y), vec3(0.f, 1.f, 0.f), first + texcOff},
+                    {vec3(s.x, height, s.y), vec3(0.f, 1.f, 0.f), second + texcOff}
+                };
+                StandardVertex sideFace[] = {
+                    {vec3(f.x, 0.f, f.y), fN, vec2(0.f, 0.f)},
+                    {vec3(s.x, 0.f, s.y), sN, vec2(0.f, 0.1f)},
+                    {vec3(f.x, height, f.y), fN, vec2(1.f, 0.f)},
+
+                    {vec3(s.x, height, s.y), sN, vec2(1.f, 0.1f)},
+                    {vec3(f.x, height, f.y), fN, vec2(1.f, 0.f)},
+                    {vec3(s.x, 0.f, s.y), sN, vec2(0.f, 0.1f)}
+                };
+
+                vertices.insert(vertices.end(), circleFace, circleFace + sizeof(circleFace) / sizeof(circleFace[0]));
+                vertices.insert(vertices.end(), sideFace, sideFace + sizeof(sideFace) / sizeof(sideFace[0]));
+            }
+
+            return MeshData<StandardVertex>(move(vertices));
         }
     }
 }

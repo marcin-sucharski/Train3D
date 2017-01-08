@@ -34,6 +34,8 @@ namespace train {
         void Terrain::draw(const model::Camera &camera) {
             shader.bind();
             shader.setUniform("projectionView", camera.getProjectionView());
+            shader.setUniform("model", glm::mat4x4());
+            shader.setUniform("invModel", glm::mat4x4());
 
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, grassTexture.getHandle());

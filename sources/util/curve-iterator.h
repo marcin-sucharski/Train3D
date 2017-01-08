@@ -20,6 +20,8 @@ namespace train {
 
             CurvePoint getNext(float distance);
             bool hasNext() const;
+
+            void restart();
         };
     }
 }

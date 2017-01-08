@@ -22,6 +22,8 @@ namespace train {
                 Terrain &terrain
             );
 
+            util::CurveProvider& getCurve();
+
             void update(double dt) override;
             void draw(const model::Camera &camera) override;
 

@@ -17,12 +17,18 @@ namespace train {
               texture(gfx::Texture::fromFile("data/textures/rails.png")) {
         }
 
+        util::CurveProvider &Rails::getCurve() {
+            return *curveProvider;
+        }
+
         void Rails::update(double dt) {
         }
 
         void Rails::draw(const model::Camera &camera) {
             shader.bind();
             shader.setUniform("projectionView", camera.getProjectionView());
+            shader.setUniform("model", glm::mat4x4());
+            shader.setUniform("invModel", glm::mat4x4());
 
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, texture.getHandle());

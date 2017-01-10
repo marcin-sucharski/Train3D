@@ -9,7 +9,7 @@ namespace train {
         const glm::vec2 FreeCameraController::neutralMousePos = glm::vec2(400.f, 400.f);
 
         FreeCameraController::FreeCameraController(model::ControllableCamera &camera, env::Window &window)
-            : camera(camera), window(window) {
+            : camera(camera), window(window), speed(0.f) {
             setup();
         }
 
@@ -23,7 +23,13 @@ namespace train {
         }
 
         void FreeCameraController::update(double delta) {
-            const float cameraMoveSpeed = 0.6f * 60.f * static_cast<float>(delta);
+            const float defaultSpeed = 2.f;
+            if (isForwardPressed() || isBackwardPressed())
+                speed += (isForwardPressed() ? 1.f : -1.f) * defaultSpeed;
+            speed -= 0.05f * speed;
+
+            const float cameraMoveSpeed = speed * static_cast<float>(delta);
+            const float cameraSideSpeed = defaultSpeed * 25.f * static_cast<float>(delta);
             const float cameraRotateSpeed = 0.0015f;
             const glm::vec3 forward = camera.getForwardVector();
             const glm::vec3 leftVec = glm::normalize(glm::cross(forward, glm::vec3(0.f, 1.f, 0.f)));
@@ -34,13 +40,12 @@ namespace train {
             const glm::vec2 dMove = (mousePos - neutralMousePos) * cameraRotateSpeed;
             const glm::vec3 newForward = glm::normalize(forward + leftVec * dMove.x + tangentUp * dMove.y);
 
-            const glm::vec3 moveForward = isForwardPressed() ? forward * cameraMoveSpeed : glm::vec3();
-            const glm::vec3 moveBackward = isBackwardPressed() ? forward * -cameraMoveSpeed : glm::vec3();
+            const glm::vec3 moveForward = forward * cameraMoveSpeed;
 
-            const glm::vec3 moveLeft = isLeftPressed() ? leftVec * -cameraMoveSpeed : glm::vec3();
-            const glm::vec3 moveRight = isRightPressed() ? leftVec * cameraMoveSpeed : glm::vec3();
+            const glm::vec3 moveLeft = isLeftPressed() ? leftVec * -cameraSideSpeed : glm::vec3();
+            const glm::vec3 moveRight = isRightPressed() ? leftVec * cameraSideSpeed : glm::vec3();
 
-            const glm::vec3 newPosition = position + moveForward + moveBackward + moveLeft + moveRight;
+            const glm::vec3 newPosition = position + moveForward + moveLeft + moveRight;
 
             camera.update(newPosition, newForward);
             setMousePos();

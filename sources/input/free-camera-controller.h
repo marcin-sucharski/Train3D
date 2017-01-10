@@ -19,6 +19,8 @@ namespace train {
             model::ControllableCamera &camera;
             env::Window &window;
 
+            float speed;
+
         public:
             FreeCameraController(model::ControllableCamera &camera, env::Window &window);
 

@@ -3,7 +3,7 @@
 
 namespace train {
     namespace env {
-        File::File(const std::string &filename) : file(filename.c_str()) {
+        File::File(const std::string &filename) : file(filename.c_str(), std::ios::binary) {
             std::cerr << "[info] Opening " << filename << std::endl;
             if (file) {
                 file.seekg(0, std::ios::end);
